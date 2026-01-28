@@ -13,7 +13,7 @@
 
 # TODO conseguir los tests
 
-# TODO Testear con un malloc normal y free para ver como funcionan usando strace
+# TODO Testear con un malloc normal y free para ver como funcionan usando strace, para ver si libera la estructura como yo lo hago cuando no hay nada
 
 # Implementacion de malloc in c https://www.youtube.com/watch?v=ppnnIZtdy28
 # Codigo c pagina 202 8.7 Example - A Storage Allocator https://www.cimat.mx/ciencia_para_jovenes/bachillerato/libros/%5BKernighan-Ritchie%5DThe_C_Programming_Language.pdf

@@ -4,85 +4,87 @@
 #include "../src/malloc.h"
 
 int main() {
-    write(1, "\nStarting test...\n\n", 18);
+    // write(1, "\nStarting test...\n\n", 18);
+    write(1, "\n", 2);
 
-    printf("Size of size_t : %zu bytes\n", sizeof(size_t));
-    printf("Size of header* : %zu bytes\n", sizeof(Header *));
-    printf("Size of max_align_t : %zu bytes\n", sizeof(max_align_t));
+    // printf("\n-> Allocating 3 blocks of 128 bytes each (zone %d)\n", TINY);
+    // for (int i = 0; i < 1; i++)
+    // {
+        // if (i % 10 == 0){
+            // printf("i %d : ", i);
+        // }
+        // char* ptr = malloc(120);
+        // ptr[32] = 'A';
+        // printf("%c\n", ptr[32]);
+    // }
+        // void* ptr = malloc(1);
+        // ptr = malloc(2);
+        // ptr = malloc(3);
 
-    printf("\n-> Allocating 200 blocks of 128 bytes each (zone %d)\n", TINY);
-    for (int i = 0; i < MINIMAL_ALLOCATIONS_REQUIRED * 2; i++)
+        // ptr = malloc(130);
+        // ptr = malloc(131);
+        // void *ptr = malloc(132);
+
+
+        // ptr = malloc(1025);
+        // ptr = malloc(1026);
+        // ptr = malloc(1027);
+
+        // ptr = malloc(84);
+        // ptr = malloc(200);
+        // ptr = malloc(48847);
+        // ptr = malloc(48847);
+    // printf("\n-> Allocating 1 block of 128 bytes each (zone %d)\n", SMALL);
+    for (int i = 0; i < 1; i++)
     {
         // if (i % 10 == 0){
             // printf("i %d : ", i);
         // }
-        void* ptr = malloc(128);
+        char* ptr2 = malloc(128);
+        // ptr2[64] = 'B';
+        // printf("%c\n", ptr2[64]);
+        free(ptr2);
     }
-    printf("\n-> Allocating 115 blocks of 129 bytes each (zone %d)\n", SMALL);
-    for (int i = 0; i < 100 * 2; i++)
-    {
-        // if (i % 10 == 0){
-            // printf("i %d : ", i);
-        // }
-        void* ptr = malloc(129);
-    }
-    printf("\n-> Allocating 3 blocks of 1025 bytes each (zone %d)\n", LARGE);
-    for (int i = 0; i < 3; i++)
+
+    printf("\n-> Allocating 1 block of 1025 bytes each (zone %d)\n", LARGE);
+    for (int i = 0; i < 1; i++)
     {
         // printf("i %d : ", i);
-        char* ptr = malloc(1025);
+        char* ptr9 = malloc(1025);
+        // ptr9[512] = 'C';
+        // printf("%c\n", ptr9[512]);
+        free(ptr9);
     }
-    show_alloc_mem();
-    exit(0);
-    printf("\n\t -> asking for 128 bytes\n");
-    void *ptr1 = malloc(128);
-
-    printf("\n\t -> asking for 128 bytes\n");
-    void *ptr2 = malloc(128);
-
-    printf("\n\t -> asking for 128 bytes\n");
-    void *ptr22 = malloc(128);
-
-    printf("\n\t -> asking for 129 bytes\n");
-    void *ptr3 = malloc(129);
-
-    printf("\n\t -> asking for 1024 bytes\n");
-    void *ptr4 = malloc(1024);
-
-    printf("\n\t -> asking for 1025 bytes\n");
-    void *ptr5 = malloc(1025);
-
-    // printf("\n\t -> asking for 1026 bytes\n");
-    // void *ptr6 = malloc(1026);
-
-    // printf("\n\t -> asking for 1025 bytes\n");
-    // void *ptr7 = malloc(1025);
-    // ((char *)ptr)[2] = 'A';
-    // ft_printf("%c\n",((char *)ptr)[2]);
-    // printf("TINY_ZONE_MIN_SIZE = %lu bytes\n", TINY_ZONE_MIN_REQUIRED_SIZE);
-    // printf("SMALL_ZONE_MIN_SIZE = %lu bytes\n", SMALL_ZONE_MIN_REQUIRED_IZE);
-    // printf("Pages in TINY_ZONE_MIN_SIZE = %.6f\n", (double)  TINY_ZONE_MIN_REQUIRED_SIZE / (double) getpagesize());
-    // printf("Pages in SMALL_ZONE_MIN_SIZE = %.6f\n", (double) SMALL_ZONE_MIN_REQUIRED_IZE /  (double)getpagesize());
-    // printf("TINY_ZONE_ALIGNED_SIZE = %lu bytes\n", TINY_ZONE_ALIGNED_SIZE);
-    // printf("SMALL_ZONE_ALIGNED_SIZE = %lu bytes\n", SMALL_ZONE_ALIGNED_SIZE);
-    // printf("UNITS_IN_TINY_ZONE = %lu\n", UNITS_IN_TINY_ZONE);
-    // printf("UNITS_IN_SMALL_ZONE = %lu\n", UNITS_IN_SMALL_ZONE);
-
-    // printf("aligne of = %zu\n", _Alignof(max_align_t));
-    // ptr = realloc(ptr, 192);
-    // free(NULL);
+    void *ptr2 = malloc(100);
+    // void *ptr7 = malloc(100);
     // show_alloc_mem();
+    show_alloc_mem();
+    printf("-> Double free\n");
+    printf("ptr2: %p\n", ptr2);
+    printf("Freeing ptr2 first time\n");
+    free(ptr2);
+    /*
+    printf("Freeing ptr2 second time\n");
+    free(ptr2);
+    show_alloc_mem();
 
-    // ft_printf("Each unit/header is %u bytes long\n", sizeof(Header));
-    // ft_printf("Each union header * is %u bytes long\n", sizeof(union header *));
-    // ft_printf("Each size_t is %u bytes long\n", sizeof(size_t));
+    printf("\n-> Freeing NULL pointer\n");
+    void *ptr = NULL;
+    free(ptr);
+    //
+    printf("-> Freeing invalid pointer 0xDEADBEEF\n");
+    free((void *)0xDEADBEEF);
+    //
+    printf("-> Freeing pointer not from malloc\n");
+    int x = 42;
+    free(&x);
+    //
+*/
+    printf("-> Freeing pointer offset from malloced block\n");
+    // TODO why segfault
+    char *ptr77 = malloc(100);
+    printf("ptr77: %p\n", ptr77);
+    free(ptr77 + 50);
 
-    // Test alignment of Header
-    // _Static_assert(
-    // alignof(Header) == alignof(max_align_t),
-    // "Header is not maximally aligned"
-// );
-    // printf("Header alignment: %zu\n", _Alignof(Header));
-    // printf("max_align_t alignment: %zu\n", _Alignof(max_align_t));
-    return 0;
+    exit(0);
 }

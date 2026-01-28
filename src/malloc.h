@@ -7,6 +7,8 @@
 # include <stddef.h>
 # include <stdbool.h>
 
+# define MALLOC_ERROR 134
+
 # define TINY_MAX_BYTE_SIZE    128                                                                           // n
 # define SMALL_MAX_BYTE_SIZE   1024                                                                          // m
 
@@ -26,14 +28,16 @@
 # define SMALL 1
 # define LARGE 2
 # define ZONES_AMOUNT 3
+# define ZONE_NOT_FOUND -1
 
 // Header is also the allocation unit
 typedef union header {
     struct {
-        union header *next_free;
-        union header *next_alloc;
-        size_t size;
-        int is_mmaped; // TODO delete when done testing
+        union header *next;
+        size_t units;
+        size_t size_from_user;
+        bool is_chunk; // TODO delete when done testing
+        bool is_allocated;
     } s;
     max_align_t align; // Forcing alignment of Units using the most restrictive alignment type
 } Header;
@@ -43,7 +47,7 @@ typedef union header {
 
 typedef struct s_zone{
     Header *dummy_hdr;
-    Header *free_list;
+    Header *free_ptr;
 } t_zone;
 
 t_zone **g_zones;
