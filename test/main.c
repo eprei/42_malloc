@@ -1,5 +1,3 @@
-#include <stdalign.h>
-#include <assert.h>
 #include <time.h>
 
 #include "../src/malloc.h"
@@ -75,14 +73,14 @@ int main() {
     printf("\n-> Freeing NULL pointer\n");
     void *ptr = NULL;
     free(ptr);
-    //
+
     printf("-> Freeing invalid pointer 0xDEADBEEF\n");
     free((void *)0xDEADBEEF);
-    //
+
     printf("-> Freeing pointer not from malloc\n");
     int x = 42;
     free(&x);
-    //
+
     printf("-> Freeing pointer offset from malloced block\n");
     char *ptr77 = malloc(100);
     printf("ptr77: %p\n", ptr77);

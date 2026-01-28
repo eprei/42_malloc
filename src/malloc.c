@@ -35,7 +35,7 @@ static Header *add_zone(const int zone_index, const unsigned number_of_units){
 
     ptr = mmap(NULL, n_bytes_aligned, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (ptr == MAP_FAILED){
-        printf("\t-> add_zone: mmap failed at zone %d\n", zone_index);
+        ft_printf("\t-> add_zone: mmap failed at zone %d\n", zone_index);
         return NULL;
     }
 
@@ -63,7 +63,7 @@ static void resolve_zone_index(const size_t size, int *zone_index){
 static bool init_zones(){
     g_zones = mmap(NULL, getpagesize(), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (g_zones == MAP_FAILED){
-        printf("init_zones: mmap failed\n");
+        ft_printf("init_zones: mmap failed\n");
         return false;
     }
 
@@ -125,7 +125,7 @@ void *malloc(size_t size){
         ptr->s.size_from_user = size;
         ptr->s.next = zone->dummy_hdr;
         // ptr->s.is_chunk = false;
-        printf("ptr allocated at %p in LARGE zone and ptr+1 = %p\n", ptr, ptr + 1);
+        ft_printf("ptr allocated at %p in LARGE zone and ptr+1 = %p\n", ptr, ptr + 1);
         return ptr + 1;
     }
 
