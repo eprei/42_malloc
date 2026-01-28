@@ -57,5 +57,6 @@ void	ft_striteri(char *s, void (*f)(unsigned int, char*));
 char	**ft_split(char const *s, char c);
 char	*ft_strtrim(char const *s1, char const *set);
 int     ft_strcmp(const char *s1, const char *s2);
+int	    ft_u_ltoa(unsigned long n);
 
 #endif

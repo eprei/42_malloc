@@ -34,6 +34,8 @@ int	ft_switch(char conversion, va_list ap)
 		return ft_putstr_itoa(ft_itoa(va_arg(ap, int)));
 	if (conversion == 'u')
 		return ft_u_itoa(va_arg(ap, unsigned int));
+	if (conversion == 'z')
+		return ft_u_ltoa(va_arg(ap, unsigned long));
 	if (conversion == 'x')
 		return ft_putnbr_hex_min(va_arg(ap, unsigned int));
 	if (conversion == 'X')
@@ -99,7 +101,7 @@ int	ft_putnbr_pointer(unsigned long n)
 {
 	char	*str;
 	int count = 0;
-	str = "0123456789abcdef";
+	str = "0123456789ABCDEF";
 
 	if (n <= 15){
 		write(1, &str[n], 1);
@@ -180,4 +182,46 @@ int	ft_u_intlen(unsigned int c)
 	i++;
 
 	return i;
+}
+
+int	ft_u_long_len(unsigned long c)
+{
+	int				len;
+
+	len = 0;
+	while (c > 9){
+		c = c / 10;
+		len++;
+	}
+	len++;
+
+	return len;
+}
+
+int	ft_u_ltoa(unsigned long n)
+{
+	char			*ptr;
+	unsigned long	len_n;
+
+	len_n = ft_u_long_len(n);
+	ptr = (char *)malloc(sizeof(char) * (len_n + 1));
+	if (ptr == NULL){
+		return 0;
+	}
+
+	if (len_n == 0 || n == 0){
+		ptr[0] = '0';
+	}
+	ptr[len_n] = '\0';
+
+	while (n > 0){
+		ptr[len_n - 1] = n % 10 + 48;
+		n = n / 10;
+		len_n--;
+	}
+
+	ft_putstr_printf(ptr);
+	free(ptr);
+
+	return ft_u_long_len(n);
 }

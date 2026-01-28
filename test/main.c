@@ -42,7 +42,7 @@ int main() {
             // printf("i %d : ", i);
         // }
         char* ptr2 = malloc(100);
-        printf("ptr2 address: %p\n", ptr2);
+        printf("ptr2 address: 0x%lX\n", (unsigned long)ptr2);
         // int r = rand() % 99;
         // ptr2[r] = 'B';
         // printf("%c\n", ptr2[r]);
@@ -56,13 +56,13 @@ int main() {
         // printf("i %d : ", i);
         char* ptr9 = malloc(1025);
         // ptr9[1000] = 'C';
-        // printf("ptr = %p and char = %c\n", ptr9, ptr9[1000]);
+        printf("ptr = 0x%lX and char = %c\n", (unsigned long)ptr9, ptr9[1000]);
         // free(ptr9);
     }
     show_alloc_mem();
     printf("\n-> Allocating double free test in small zone\n");
     void *ptr2 = malloc(200);
-    printf("ptr2: %p\n", ptr2);
+    printf("ptr2: 0x%lX\n", (unsigned long) ptr2);
     show_alloc_mem();
     printf("Freeing ptr2 first time\n");
     free(ptr2);
@@ -83,7 +83,7 @@ int main() {
 
     printf("-> Freeing pointer offset from malloced block\n");
     char *ptr77 = malloc(100);
-    printf("ptr77: %p\n", ptr77);
+    printf("ptr77: 0x%lX\n", (unsigned long)ptr77);
     free(ptr77 + 50);
     exit(0);
 }

@@ -3,6 +3,6 @@
 void *realloc(void *ptr, size_t size){
     (void) ptr;
     (void) size;
-    write(1, "realloc called\n", 15);
+    ft_printf( "realloc called\n");
     return NULL;
 }
