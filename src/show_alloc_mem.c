@@ -46,7 +46,8 @@ void show_alloc_mem(void){
             // else {
             // }
             if (ptr->s.is_allocated == true){
-                printf("0x%lX - 0x%lX", (unsigned long)ptr, (unsigned long)((char *)ptr + ptr->s.size_from_user));
+                Header *block_header_ptr = ptr + 1;
+                printf("0x%lX - 0x%lX", (unsigned long) block_header_ptr, (unsigned long)((char *)block_header_ptr + ptr->s.size_from_user));
                 printf(" : %zu bytes\n", ptr->s.size_from_user);
                 bytes_allocated += ptr->s.size_from_user;
             }

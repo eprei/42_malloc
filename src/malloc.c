@@ -80,7 +80,7 @@ static Header *add_zone(const int zone_index, const unsigned number_of_units){
         return NULL;
     }
     size_t units = n_bytes_aligned / sizeof(Header);
-    // printf("**** more_core_for_zone: mmap succeeded for zone %d with %lu bytes and %zu units ****\n", zone_index, n_bytes_aligned, units);
+    printf("add_zone: mmap succeeded for zone %d with %lu bytes and %zu units and ptr %p\n", zone_index, n_bytes_aligned, units, ptr);
 
     new_chunk = (Header *) ptr;
     new_chunk->s.units = units;
@@ -361,6 +361,7 @@ void *malloc(size_t size){
         if (ptr == NULL){
             return NULL;
         }
+        // get last node
         while (ptr->s.next != zone->dummy_hdr){
             ptr = ptr->s.next;
         }
@@ -369,10 +370,11 @@ void *malloc(size_t size){
         ptr->s.size_from_user = size;
         ptr->s.next = zone->dummy_hdr;
         // ptr->s.is_chunk = false;
+        printf("ptr allocated at %p in LARGE zone and ptr+1 = %p\n", ptr, ptr + 1);
         return ptr + 1;
     }
 
-    printf("malloc: searching for free block in TINY/SMALL zone %d\n", zone_index);
+    // printf("malloc: searching for free block in TINY/SMALL zone %d\n", zone_index);
     // TINY and SMALL zones allocation
     // printf("malloc: prev_ptr = %p\n", prev_ptr);
     // if (ptr->s.next == NULL)
