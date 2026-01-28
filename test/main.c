@@ -5,8 +5,7 @@
 #include "../src/malloc.h"
 
 int main() {
-    // write(1, "\nStarting test...\n\n", 18);
-    write(1, "\n", 2);
+    write(1, "\nStarting tests...\n\n", 20);
     show_alloc_mem();
 
     // printf("\n-> Allocating 3 blocks of 128 bytes each (zone %d)\n", TINY);
@@ -63,11 +62,8 @@ int main() {
         // free(ptr9);
     }
     show_alloc_mem();
-    /*
     printf("\n-> Allocating double free test in small zone\n");
     void *ptr2 = malloc(200);
-    // void *ptr7 = malloc(100);
-    // show_alloc_mem();
     printf("ptr2: %p\n", ptr2);
     show_alloc_mem();
     printf("Freeing ptr2 first time\n");
@@ -92,5 +88,4 @@ int main() {
     printf("ptr77: %p\n", ptr77);
     free(ptr77 + 50);
     exit(0);
-    */
 }
