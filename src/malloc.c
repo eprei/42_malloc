@@ -85,11 +85,11 @@ static Header *add_zone(const int zone_index, const unsigned number_of_units){
     new_chunk = (Header *) ptr;
     new_chunk->s.units = units;
     new_chunk->s.next = zone->dummy_hdr;
-    printf("New chunk created at zone %d - address 0x%lX - units %zu\n", zone_index, (unsigned long)new_chunk, new_chunk->s.units);
+    // printf("New chunk created at zone %d - address 0x%lX - units %zu\n", zone_index, (unsigned long)new_chunk, new_chunk->s.units);
     new_chunk->s.is_chunk = true;
     new_chunk->s.is_allocated = false;
     add_chunk_to_zone(new_chunk, zone);
-    printf("New chunk added to zone %d - address 0x%lX - units %zu\n", zone_index, (unsigned long)new_chunk, new_chunk->s.units);
+    // printf("New chunk added to zone %d - address 0x%lX - units %zu\n", zone_index, (unsigned long)new_chunk, new_chunk->s.units);
 
     return zone->free_ptr;
 }
@@ -166,12 +166,12 @@ static int validate_pointer(void *ptr){
 
 static bool all_zones_are_empty(){
     char *zone_names[] = {"TINY", "SMALL", "LARGE"};
-    printf("all_zones_are_empty: checking all zones\n");
+    // printf("all_zones_are_empty: checking all zones\n");
     for (int zone_index = 0; zone_index < ZONES_AMOUNT; zone_index++){
         const t_zone *zone = g_zones[zone_index];
         Header *ptr;
 
-        printf("all_zones_are_empty: checking zone %s\n", zone_names[zone_index]);
+        // printf("all_zones_are_empty: checking zone %s\n", zone_names[zone_index]);
         if (zone == NULL || zone->dummy_hdr == NULL || zone->dummy_hdr->s.next == NULL){
             printf("all_zones_are_empty: zone %s not initialized or empty, continuing\n", zone_names[zone_index]);
             continue;
@@ -182,7 +182,7 @@ static bool all_zones_are_empty(){
         // TODO resolve bug
         ptr = zone->dummy_hdr->s.next;
         while (ptr != zone->dummy_hdr){
-            printf("all_zones_are_empty: checking block %p in zone %s\n", ptr,  zone_names[zone_index]);
+            // printf("all_zones_are_empty: checking block %p in zone %s\n", ptr,  zone_names[zone_index]);
             if (ptr->s.is_allocated == true){
                 return false;
             }
@@ -195,31 +195,36 @@ static bool all_zones_are_empty(){
     return true;
 }
 
+// TODO seguir aca hay un problema cuando se libera todo el espacio y se intenta volver a asignar
+// se deberia crear una nueva zona por que la otra deberia estar borrada (?)
 static void unmap_g_zones(){
-    printf("unmap_g_zones: checking if all zones are empty\n");
+    // printf("unmap_g_zones: checking if all zones are empty\n");
     if (all_zones_are_empty()){
-        printf("unmap_g_zones: all zones are empty, unmapping g_zones\n");
+        // printf("unmap_g_zones: all zones are empty, unmapping g_zones\n");
         if (munmap(g_zones, getpagesize()) != 0){;
             printf("unmap_g_zones: munmap failed\n");
             return;
         }
+        printf("unmap_g_zones: munmap succeeded: %p\n", g_zones);
         g_zones = NULL;
+        printf("g_zones: %p\n", g_zones);
     }
 }
 
 void free(void *ptr){
-    printf("free: called with pointer %p\n", ptr);
+    // printf("free: called with pointer %p\n", ptr);
     char *zone_names[] = {"TINY", "SMALL", "LARGE"};
-    Header *block_header_ptr, *p;
+    Header *block_header_ptr, *prev;
     // Header *freep;
     const int zone_index = validate_pointer(ptr);
 
-    printf("free: called with pointer %p\n", ptr);
+    // printf("free: called with pointer %p\n", ptr);
     if (zone_index == ZONE_NOT_FOUND){
-        printf("free: invalid pointer %p, aborting free\n", ptr);
+        // printf("free: invalid pointer %p, aborting free\n", ptr);
         return;
     }
 
+    print_dummy(zone_index);
     // freep = g_zones[zone_index]->free_ptr;
     // printf("free: found zone %d for pointer %p\n", zone_index, ptr);
     // block_header_ptr = (Header *) ptr - 1;
@@ -231,37 +236,43 @@ void free(void *ptr){
     //     sleep(1);
     // }
 
-    printf("free: found zone %d for pointer %p\n", zone_index, ptr);
+    // printf("free: found zone %d for pointer %p\n", zone_index, ptr);
     block_header_ptr = (Header *) ptr - 1;
-    for (p = g_zones[zone_index]->dummy_hdr; p->s.next != block_header_ptr; p = p->s.next){
-        printf("free: traversing list %s drom dummy_hdr, current block %p\n", zone_names[zone_index], p);
+    for (prev = g_zones[zone_index]->dummy_hdr; prev->s.next != block_header_ptr; prev = prev->s.next){
+        // printf("free: traversing list %s drom dummy_hdr, current block %p\n", zone_names[zone_index], prev);
         // if (p >= p->s.next && (block_header_ptr > p || block_header_ptr < p->s.next)){
             // break; /* freed block at start or end of arena */
         // }
         // sleep(1);
     }
 
-    printf("Freeing pointer %p and header %p in zone %d\n", ptr, block_header_ptr, zone_index);
+    // printf("Freeing pointer %p and header %p in zone %d\n", ptr, block_header_ptr, zone_index);
     // If the next block is free, merge with it
     if (block_header_ptr->s.next->s.is_allocated == false) {
-        printf("Merging with NEXT free block at %p\n", block_header_ptr->s.next);
+        // printf("Merging with NEXT free block at %p\n", block_header_ptr->s.next);
 
         Header *next = block_header_ptr->s.next;
         block_header_ptr->s.units += next->s.units;
-        block_header_ptr->s.next = next->s.next;
-        next->s.next = NULL;
+        if (next != g_zones[zone_index]->dummy_hdr){
+            block_header_ptr->s.next = next->s.next;
+        }
+        // next->s.next = NULL;
     }
     // If the previous block is free, merge with it
-    if (p->s.next == block_header_ptr) {
-        printf("Merging with PREVIOUS free block at %p\n", p);
+    if (prev->s.is_allocated == false) {
+        // printf("Merging with PREVIOUS free block at %p\n", prev);
 
-        p->s.units += block_header_ptr->s.units;
-        p->s.next = block_header_ptr->s.next;
-        block_header_ptr->s.is_allocated = false;
-        block_header_ptr->s.next = NULL;
+        if (prev != g_zones[zone_index]->dummy_hdr){
+            prev->s.units += block_header_ptr->s.units;
+        }
+        prev->s.next = block_header_ptr->s.next;
+        // block_header_ptr->s.is_allocated = false;
+        // block_header_ptr->s.next = NULL;
     }
 
     block_header_ptr->s.is_allocated = false;
+    print_dummy(zone_index);
+
 
     // freep = p; // para que sirve esto?
     unmap_g_zones();
@@ -282,6 +293,7 @@ static void resolve_zone_index(const size_t size, int *zone_index){
 
 static bool init_zones(){
     g_zones = mmap(NULL, getpagesize(), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    printf("init_zones: initializing g_zones at %p\n", g_zones);
     if (g_zones == MAP_FAILED){
         printf("init_zones: mmap failed\n");
         return false;
@@ -331,11 +343,15 @@ void *malloc(size_t size){
     if ((prev_ptr = zone->free_ptr) == NULL) { /* no free list yet */
         // TODO desglosar la siguiente linea en varias para entender mejor
         // zone->dummy_hdr->s.ptr = zone->free_list = prev_ptr = zone->dummy_hdr;
-        printf("===>malloc: initializing free list for zone %d\n", zone_index);
+        printf("===> malloc: initializing free list for zone %d\n", zone_index);
         prev_ptr = zone->dummy_hdr;
         zone->free_ptr = zone->dummy_hdr;
         zone->dummy_hdr->s.next = zone->dummy_hdr;
         zone->dummy_hdr->s.units = 0;
+        // printf("zone->dummy_hdr = %p\n", zone->dummy_hdr);
+        // printf("prev_ptr = %p\n", prev_ptr);
+        // printf("zone->dummy_hdr->s.next = %p\n", zone->dummy_hdr->s.next);
+        // printf("prev_ptr.s.next = %p\n", prev_ptr->s.next);
     }
 
     // printf("malloc: starting search for free block in zone %d\n", zone_index);
@@ -358,25 +374,24 @@ void *malloc(size_t size){
 
     printf("malloc: searching for free block in TINY/SMALL zone %d\n", zone_index);
     // TINY and SMALL zones allocation
-    // TODO continue here why segfault when SMALL zone when allocating after a full free
-    printf("malloc: prev_ptr = %p\n", prev_ptr);
-    if (ptr->s.next == NULL)
-    {
-        printf("malloc: ptr.s.next is NULL, something went wrong\n");
-        return NULL;
-    }
-    if (prev_ptr == NULL)
-    {
-        printf("malloc: prev_ptr is NULL, something went wrong\n");
-        return NULL;
-    }
-    if (prev_ptr->s.next == NULL)
-    {
-        printf("malloc: prev_ptr.s.next is NULL, something went wrong\n");
-        return NULL;
-    }
-    printf("ptr: %p\n", ptr);
-    printf("prev_ptr->s.next = %p\n", prev_ptr->s.next);
+    // printf("malloc: prev_ptr = %p\n", prev_ptr);
+    // if (ptr->s.next == NULL)
+    // {
+    //     printf("malloc: ptr.s.next is NULL, something went wrong\n");
+    //     return NULL;
+    // }
+    // if (prev_ptr == NULL)
+    // {
+    //     printf("malloc: prev_ptr is NULL, something went wrong\n");
+    //     return NULL;
+    // }
+    // if (prev_ptr->s.next == NULL)
+    // {
+    //     printf("malloc: prev_ptr.s.next is NULL, something went wrong\n");
+    //     return NULL;
+    // }
+    // printf("ptr: %p\n", ptr);
+    // printf("prev_ptr->s.next = %p\n", prev_ptr->s.next);
     for (ptr = prev_ptr->s.next; ; prev_ptr = ptr, ptr = ptr->s.next) {
         // printf("malloc: checking block %p with %zu units (allocated: %d) in zone %d\n", ptr, ptr->s.units, ptr->s.is_allocated, zone_index);
         if (ptr->s.units >= units_needed && !ptr->s.is_allocated) { /* big enough */

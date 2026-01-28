@@ -1,11 +1,14 @@
 #include <stdalign.h>
 #include <assert.h>
+#include <time.h>
 
 #include "../src/malloc.h"
 
 int main() {
     // write(1, "\nStarting test...\n\n", 18);
     write(1, "\n", 2);
+    show_alloc_mem();
+
 
     // printf("\n-> Allocating 3 blocks of 128 bytes each (zone %d)\n", TINY);
     // for (int i = 0; i < 1; i++)
@@ -34,36 +37,39 @@ int main() {
         // ptr = malloc(200);
         // ptr = malloc(48847);
         // ptr = malloc(48847);
-    // printf("\n-> Allocating 1 block of 128 bytes each (zone %d)\n", SMALL);
-    for (int i = 0; i < 1; i++)
+    srand(time(NULL));   // Initialization, should only be called once.
+    printf("\n-> Allocating 3 block of 100 bytes each (zone %d)\n", TINY);
+    for (int i = 0; i < 3; i++)
     {
         // if (i % 10 == 0){
             // printf("i %d : ", i);
         // }
-        char* ptr2 = malloc(128);
-        // ptr2[64] = 'B';
-        // printf("%c\n", ptr2[64]);
+        char* ptr2 = malloc(100);
+        printf("ptr2 address: %p\n", ptr2);
+        int r = rand() % 99;
+        ptr2[r] = 'B';
+        printf("%c\n", ptr2[r]);
         free(ptr2);
     }
+    exit(0);
+    show_alloc_mem();
 
-    printf("\n-> Allocating 1 block of 1025 bytes each (zone %d)\n", LARGE);
-    for (int i = 0; i < 1; i++)
-    {
+    // printf("\n-> Allocating 1 block of 1025 bytes each (zone %d)\n", LARGE);
+    // for (int i = 0; i < 1; i++)
+    // {
         // printf("i %d : ", i);
-        char* ptr9 = malloc(1025);
+        // char* ptr9 = malloc(1025);
         // ptr9[512] = 'C';
         // printf("%c\n", ptr9[512]);
-        free(ptr9);
-    }
-    void *ptr2 = malloc(100);
+        // free(ptr9);
+    // }
+    printf("\n-> Allocating double free test in small zone\n");
+    void *ptr2 = malloc(200);
     // void *ptr7 = malloc(100);
     // show_alloc_mem();
-    show_alloc_mem();
-    printf("-> Double free\n");
     printf("ptr2: %p\n", ptr2);
     printf("Freeing ptr2 first time\n");
     free(ptr2);
-    /*
     printf("Freeing ptr2 second time\n");
     free(ptr2);
     show_alloc_mem();
@@ -79,9 +85,7 @@ int main() {
     int x = 42;
     free(&x);
     //
-*/
     printf("-> Freeing pointer offset from malloced block\n");
-    // TODO why segfault
     char *ptr77 = malloc(100);
     printf("ptr77: %p\n", ptr77);
     free(ptr77 + 50);

@@ -1,6 +1,15 @@
 #include "malloc.h"
 #include "../../../Library/Caches/JetBrains/CLion2025.1/.remote/localhost_2222/19464731-72d4-4f66-9fbc-d5c4a73063e5/usr/lib/gcc/x86_64-linux-gnu/11/include/stdnoreturn.h"
 
+void print_dummy(int i)
+{
+    // t_zone *zone = g_zones[i];
+    // printf("Dummy %d\n", i);
+    // printf("zone->dummy_hdr = %p\n", zone->dummy_hdr);
+    // printf("zone->dummy_hdr->s.next = %p\n", zone->dummy_hdr->s.next);
+
+}
+
 void show_alloc_mem(void){
     size_t bytes_allocated = 0;
     printf("\n\tshow_alloc_mem start\n");
@@ -11,6 +20,7 @@ void show_alloc_mem(void){
 
     for (int i = 0; i < ZONES_AMOUNT; i++){
         t_zone *zone = g_zones[i];
+        print_dummy(i);
         if (zone->dummy_hdr == NULL || zone->dummy_hdr->s.next == NULL){
             printf("Zone %d: not initialized\n\n", i);
             continue;
