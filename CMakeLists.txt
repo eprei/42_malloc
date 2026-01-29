@@ -31,6 +31,7 @@ add_library(ft_malloc SHARED
         src/free.c
         src/realloc.c
         src/show_alloc_mem.c
+        src/utils.c
 )
 
 set_target_properties(ft_malloc PROPERTIES

@@ -7,6 +7,14 @@ static void add_chunk_to_zone(Header *new_chunk, const t_zone *zone){
     ptr->s.next = new_chunk;
 }
 
+static void init_chunk(Header** new_chunk, char* ptr, t_zone* zone, size_t units){
+    *new_chunk = (Header *) ptr;
+    (*new_chunk)->s.units = units;
+    (*new_chunk)->s.next = zone->dummy_hdr;
+    (*new_chunk)->s.is_chunk = true;
+    (*new_chunk)->s.is_allocated = false;
+}
+
 // number_of_units is only used for LARGE zones
 static Header *add_zone(const int zone_index, const unsigned number_of_units){
     Header *new_chunk;
@@ -35,16 +43,12 @@ static Header *add_zone(const int zone_index, const unsigned number_of_units){
 
     ptr = mmap(NULL, n_bytes_aligned, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (ptr == MAP_FAILED){
-        ft_printf("\t-> add_zone: mmap failed at zone %d\n", zone_index);
+        ft_printf("add_zone: mmap failed at zone %d\n", zone_index);
         return NULL;
     }
 
     units = n_bytes_aligned / sizeof(Header);
-    new_chunk = (Header *) ptr;
-    new_chunk->s.units = units;
-    new_chunk->s.next = zone->dummy_hdr;
-    new_chunk->s.is_chunk = true;
-    new_chunk->s.is_allocated = false;
+    init_chunk(&new_chunk, ptr, zone, units);
     add_chunk_to_zone(new_chunk, zone);
 
     return zone->free_ptr;
@@ -74,20 +78,21 @@ static bool init_zones(){
     g_zones[TINY]->dummy_hdr = (Header *)((void *) g_zones + sizeof(t_zone *) * ZONES_AMOUNT + sizeof(t_zone) * ZONES_AMOUNT);
     g_zones[TINY]->free_ptr = NULL;
     g_zones[TINY]->dummy_hdr->s.next = g_zones[TINY]->dummy_hdr;
-    g_zones[TINY]->dummy_hdr->s.units = 0;
+    g_zones[TINY]->dummy_hdr->s.units = DUMMY_HEADER;
 
     g_zones[SMALL]->dummy_hdr = (Header *)((void *) g_zones + sizeof(t_zone *) * ZONES_AMOUNT + sizeof(t_zone) * (ZONES_AMOUNT + SMALL));
     g_zones[SMALL]->free_ptr = NULL;
     g_zones[SMALL]->dummy_hdr->s.next = g_zones[SMALL]->dummy_hdr;
-    g_zones[SMALL]->dummy_hdr->s.units = 0;
+    g_zones[SMALL]->dummy_hdr->s.units = DUMMY_HEADER;
 
     g_zones[LARGE]->dummy_hdr = (Header *)((void *) g_zones + sizeof(t_zone *) * ZONES_AMOUNT + sizeof(t_zone) * (ZONES_AMOUNT + LARGE));
     g_zones[LARGE]->free_ptr = NULL;
     g_zones[LARGE]->dummy_hdr->s.next = g_zones[LARGE]->dummy_hdr;
-    g_zones[LARGE]->dummy_hdr->s.units = 0;
+    g_zones[LARGE]->dummy_hdr->s.units = DUMMY_HEADER;
 
     return true;
 }
+
 
 void *malloc(size_t size){
     Header *ptr, *prev_ptr;
@@ -102,7 +107,7 @@ void *malloc(size_t size){
     resolve_zone_index(size, &zone_index);
     zone = g_zones[zone_index];
 
-    units_needed = (size + sizeof(Header) -1) / sizeof(Header) + 1;
+    units_needed = calculate_units_needed(size);
     if ((prev_ptr = zone->free_ptr) == NULL) { /* no free list yet */
         prev_ptr = zone->dummy_hdr;
         zone->free_ptr = zone->dummy_hdr;
@@ -124,11 +129,10 @@ void *malloc(size_t size){
         ptr->s.is_allocated = true;
         ptr->s.size_from_user = size;
         ptr->s.next = zone->dummy_hdr;
-        // ptr->s.is_chunk = false;
-        ft_printf("ptr allocated at %p in LARGE zone and ptr+1 = %p\n", ptr, ptr + 1);
         return ptr + 1;
     }
 
+    // TINY and SMALL zone allocation
     for (ptr = prev_ptr->s.next; ; prev_ptr = ptr, ptr = ptr->s.next) {
         if (ptr->s.units >= units_needed && !ptr->s.is_allocated) { /* big enough */
             // If is not an exact fit, allocate from the tail end

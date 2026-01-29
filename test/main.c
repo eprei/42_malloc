@@ -2,88 +2,162 @@
 
 #include "../src/malloc.h"
 
-int main() {
-    write(1, "\nStarting tests...\n\n", 20);
+# define ALLOCATED_AMOUNT 5
+
+static char *zone_names[] = {"TINY", "SMALL", "LARGE"};
+
+static void test_double_free(void){
+    printf("\n\tTesting double free\n\n");
+
+    void *ptr = malloc(200);
+    printf("200 bytes has been allocated at 0x%lX\n\n", ptr);
     show_alloc_mem();
+    printf("\nFreeing 0x%lX first time\n", ptr);
+    free(ptr);
+    printf("Freeing 0x%lX second time\n", ptr);
+    free(ptr);
+}
 
-    // printf("\n-> Allocating 3 blocks of 128 bytes each (zone %d)\n", TINY);
-    // for (int i = 0; i < 1; i++)
-    // {
-        // if (i % 10 == 0){
-            // printf("i %d : ", i);
-        // }
-        // char* ptr = malloc(120);
-        // ptr[32] = 'A';
-        // printf("ptr = %p and char = %c\n", ptr, ptr[32]);
-    // }
-    // show_alloc_mem();
-        // void* ptr = malloc(1);
-        // ptr = malloc(2);
-        // ptr = malloc(3);
+static void test_invalid_pointers(void){
+    printf("\n\tTesting invalid pointers\n\n");
 
-        // ptr = malloc(130);
-        // ptr = malloc(131);
-        // void *ptr = malloc(132);
+    printf("Freeing NULL pointer\n");
+    void *ptr = NULL;
+    free(ptr);
+    printf("\n");
 
+    printf("Freeing invalid pointer 0xDEADBEEF\n");
+    free((void *)0xDEADBEEF);
+    printf("\n");
 
-        // ptr = malloc(1025);
-        // ptr = malloc(1026);
-        // ptr = malloc(1027);
+    printf("Freeing pointer not from malloc\n");
+    int x = 42;
+    free(&x);
+    printf("\n");
 
-        // ptr = malloc(84);
-        // ptr = malloc(200);
-        // ptr = malloc(48847);
-        // ptr = malloc(48847);
-    srand(time(NULL));   // Initialization, should only be called once.
-    printf("\n-> Allocating 3 block of 100 bytes each (zone %d)\n", TINY);
-    for (int i = 0; i < 3; i++)
-    {
-        // if (i % 10 == 0){
-            // printf("i %d : ", i);
-        // }
-        char* ptr2 = malloc(100);
-        printf("ptr2 address: 0x%lX\n", (unsigned long)ptr2);
+    printf("Freeing pointer offset from malloced block\n");
+    char *ptr2 = malloc(100);
+    printf("ptr2: 0x%lX\n", (unsigned long)ptr2);
+    free(ptr2 + 50);
+    free(ptr2);
+}
+
+static void test_zone(int zone_index){
+    int size;
+    char *zone_name = zone_names[zone_index];
+
+    switch (zone_index){
+        case TINY:
+            size = TINY_MAX_BYTE_SIZE - 1;
+            break;
+        case SMALL:
+            size = SMALL_MAX_BYTE_SIZE - 1;
+            break;
+        case LARGE:
+            size = SMALL_MAX_BYTE_SIZE + 1;
+            break;
+    }
+
+    printf("\n\tTesting %s zone\n\n", zone_name);
+
+    printf("Allocating %d block(s) of %d bytes each (zone %s)\n\n", ALLOCATED_AMOUNT, size, zone_name);
+    char *ptr[ALLOCATED_AMOUNT];
+    for (int i = 0; i < ALLOCATED_AMOUNT; i++){
+        ptr[i] = malloc(size);
         // int r = rand() % 99;
         // ptr2[r] = 'B';
         // printf("%c\n", ptr2[r]);
-        // free(ptr2);
     }
     show_alloc_mem();
 
-    printf("\n-> Allocating 3 blocs of 1025 bytes each (zone %d)\n", LARGE);
-    for (int i = 0; i < 3; i++)
-    {
-        // printf("i %d : ", i);
-        char* ptr9 = malloc(1025);
-        // ptr9[1000] = 'C';
-        printf("ptr = 0x%lX and char = %c\n", (unsigned long)ptr9, ptr9[1000]);
-        // free(ptr9);
+    for (int i = 0; i < ALLOCATED_AMOUNT; i++){
+        free(ptr[i]);
     }
-    show_alloc_mem();
-    printf("\n-> Allocating double free test in small zone\n");
-    void *ptr2 = malloc(200);
-    printf("ptr2: 0x%lX\n", (unsigned long) ptr2);
-    show_alloc_mem();
-    printf("Freeing ptr2 first time\n");
-    free(ptr2);
-    printf("Freeing ptr2 second time\n");
-    free(ptr2);
-    show_alloc_mem();
+}
 
-    printf("\n-> Freeing NULL pointer\n");
-    void *ptr = NULL;
+static void test_realloc(void){
+    printf("\n\tTesting realloc: when there is space to expand\n\n");
+    printf("Allocating 50 bytes two times\n\n");
+    void *ptr2 = malloc(50);
+    void *ptr3 = malloc(50);
+    show_alloc_mem();
+    printf("\nFreeing 0x%lX to create space\n\n", ptr2);
+    free(ptr2);
+    show_alloc_mem();
+    printf("\nRealloc 0x%lX to 100 bytes\n\n", ptr3);
+    ptr3 = realloc(ptr3, 100);
+    show_alloc_mem();
+    free(ptr3);
+
+    printf("\n\tTesting realloc: when no space to expand\n\n");
+    printf("Allocating 50 bytes\n\n");
+    void *ptr = malloc(50);
+    show_alloc_mem();
+    printf("\nRealloc 0x%lX to 100 bytes\n\n", ptr);
+    ptr = realloc(ptr, 100);
+    show_alloc_mem();
     free(ptr);
 
-    printf("-> Freeing invalid pointer 0xDEADBEEF\n");
-    free((void *)0xDEADBEEF);
+    void *invalid_ptr = (void *)0x12345678;
+    printf("\n\n\tTesting realloc: invalid pointer %p\n\n", invalid_ptr);
+    realloc(invalid_ptr, 150);
 
-    printf("-> Freeing pointer not from malloc\n");
-    int x = 42;
-    free(&x);
+}
 
-    printf("-> Freeing pointer offset from malloced block\n");
-    char *ptr77 = malloc(100);
-    printf("ptr77: 0x%lX\n", (unsigned long)ptr77);
-    free(ptr77 + 50);
-    exit(0);
+static void test_mixed_allocations(void){
+    const int size_tiny = TINY_MAX_BYTE_SIZE - 1;
+    const int size_small = SMALL_MAX_BYTE_SIZE - 1;
+    const int size_large = SMALL_MAX_BYTE_SIZE + 1;
+    char *ptr_tiny[ALLOCATED_AMOUNT];
+    char *ptr_small[ALLOCATED_AMOUNT];
+    char *ptr_large[ALLOCATED_AMOUNT];
+
+    printf("\n\tTesting mixed allocations\n\n");
+
+    printf("Allocating %d block(s) for each zone\n\n", ALLOCATED_AMOUNT);
+    for (int i = 0; i < ALLOCATED_AMOUNT; i++){
+        ptr_tiny[i] = malloc(size_tiny);
+        ptr_small[i] = malloc(size_small);
+        ptr_large[i] = malloc(size_large);
+    }
+
+    show_alloc_mem();
+
+    for (int i = 0; i < ALLOCATED_AMOUNT; i++){
+        free(ptr_tiny[i]);
+        free(ptr_small[i]);
+        free(ptr_large[i]);
+    }
+}
+
+void print_line(void){
+    printf("___________________________________________________________________________________\n");
+}
+
+int main() {
+    srand(time(NULL));
+
+    print_line();
+    test_zone(TINY);
+
+    print_line();
+    test_zone(SMALL);
+
+    print_line();
+    test_zone(LARGE);
+
+    print_line();
+    test_mixed_allocations();
+
+    print_line();
+    test_realloc();
+
+    print_line();
+    test_invalid_pointers();
+
+    print_line();
+    test_double_free();
+
+    print_line();
+    return 0;
 }

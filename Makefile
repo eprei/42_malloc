@@ -1,6 +1,6 @@
 NAME = malloc
 
-SRCS = src/malloc.c src/free.c src/realloc.c src/show_alloc_mem.c
+SRCS = src/malloc.c src/free.c src/realloc.c src/show_alloc_mem.c src/utils.c
 OBJ = $(SRCS:.c=.o)
 TEST_DIR = test
 TEST_SRC = main.c
