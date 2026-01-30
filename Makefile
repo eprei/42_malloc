@@ -7,9 +7,7 @@ TEST_SRC = main.c
 TEST_BINARY = test_malloc
 
 CC = gcc
-CFLAGS = -Wl,-flat_namespace -Wl,-undefined,dynamic_lookup -g #-Wall -Wextra -Werror -O0
-
-# TODO fix cflags to ignore linker by default
+CFLAGS = -g #-Wall -Wextra -Werror
 
 LIBFTPATH = ./libft
 
@@ -49,7 +47,7 @@ fclean: clean
 
 test: all
 	@echo "Running test with my malloc"
-	$(CC) $(CFLAGS) $(TEST_DIR)/$(TEST_SRC) -o $(TEST_DIR)/$(TEST_BINARY)
+	$(CC) $(CFLAGS) $(TEST_DIR)/$(TEST_SRC) -o $(TEST_DIR)/$(TEST_BINARY) -L. -lft_malloc
 	./run.sh $(TEST_DIR)/$(TEST_BINARY)
 
 gdb: all

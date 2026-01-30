@@ -93,7 +93,6 @@ static bool init_zones(){
     return true;
 }
 
-
 void *malloc(size_t size){
     Header *ptr, *prev_ptr;
     unsigned units_needed;

@@ -32,6 +32,11 @@ void *realloc(void *ptr, size_t size){
 
     if (size == 0){
         free(ptr);
+        // return malloc(size);
+        return NULL;
+    }
+
+    if (size <= 0 || SIZE_MAX <= size){
         return NULL;
     }
 
