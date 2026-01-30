@@ -31,8 +31,12 @@ static void unmap_g_zones(){
     }
 }
 
+static bool is_dummy(const Header *ptr){
+    return ptr->s.units == DUMMY_HEADER;
+}
+
 void free(void *ptr){
-    Header *block_header, *prev;
+    Header *block_header, *prev, *next;
     const int zone_index = get_zone_index(ptr);
 
     if (zone_index == ZONE_NOT_FOUND){
@@ -43,20 +47,16 @@ void free(void *ptr){
     block_header = get_header(ptr);
     for (prev = g_zones[zone_index]->dummy_hdr; prev->s.next != block_header; prev = prev->s.next){}
 
-    // If the next block is free, merge with it
-    if (block_header->s.next->s.is_allocated == false) {
-        Header *next = block_header->s.next;
+    // Defragmentation
+    // If the next block is free and not dummy, merge with it
+    next = block_header->s.next;
+    if (!is_dummy(next) && next->s.is_allocated == false) {
         block_header->s.units += next->s.units;
-        if (next != g_zones[zone_index]->dummy_hdr){
-            block_header->s.next = next->s.next;
-        }
+        block_header->s.next = next->s.next;
     }
-
-    // If the previous block is free, merge with it
-    if (prev->s.is_allocated == false) {
-        if (prev != g_zones[zone_index]->dummy_hdr){
-            prev->s.units += block_header->s.units;
-        }
+    // If the previous block is free and not dummy, merge with it
+    if (!is_dummy(prev) && prev->s.is_allocated == false) {
+        prev->s.units += block_header->s.units;
         prev->s.next = block_header->s.next;
     }
 

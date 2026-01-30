@@ -39,3 +39,39 @@ void show_alloc_mem(void){
 
     ft_printf("Total : %z bytes\n", bytes_allocated);
 }
+
+void show_all_chunks_info(void){
+    size_t total_units = 0;
+
+    if (g_zones == NULL){
+        ft_printf("show_alloc_mem: no allocations yet\n");
+        return;
+    }
+
+    for (int i = 0; i < ZONES_AMOUNT; i++){
+        char *zone_names[] = {"TINY", "SMALL", "LARGE"};
+        char *is_alloc[] = {"free", "allocated"};
+        const t_zone *zone = g_zones[i];
+
+        if (zone->dummy_hdr == NULL || zone->dummy_hdr->s.next == NULL){
+            ft_printf("Zone %d: not initialized\n", i);
+            continue;
+        }
+
+        Header *ptr = zone->dummy_hdr->s.next;
+
+        if (ptr->s.units == 0){
+            continue;
+        }
+
+        ft_printf("%s : %p\n", zone_names[i], ptr);
+
+        while (ptr != zone->dummy_hdr){
+            ft_printf("%p : %z units %s\n", ptr + 1, ptr->s.units, is_alloc[ptr->s.is_allocated]);
+            total_units += ptr->s.units;
+            ptr = ptr->s.next;
+        }
+    }
+
+    ft_printf("Total units: %z\n", total_units);
+}

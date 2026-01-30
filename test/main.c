@@ -137,25 +137,14 @@ static void test_defragmentation(void){
     void *ptr1 = malloc(50);
     void *ptr2 = malloc(50);
     void *ptr3 = malloc(50);
-    show_alloc_mem();
+    show_all_chunks_info();
 
-    printf("\nFreeing 0x%lX and 0x%lX to create defragmentation\n\n", ptr2, ptr1);
-    free(ptr2);
+    printf("\nFreeing 0x%lX\n\n", ptr1);
     free(ptr1);
-    show_alloc_mem();
-
-    printf("\nAllocating 100 bytes to see if it fits in the defragmented space\n\n");
-    void *ptr4 = malloc(49);
-    show_alloc_mem();
-
-    if (ptr4 == ptr2){
-        printf("\nAllocation fit in defragmented space at 0x%lX\n", ptr2);
-    } else {
-        printf("\nAllocation did not fit in defragmented space 0x%lX, allocated at 0x%lX\n", ptr2, ptr4);
-    }
-
-    free(ptr3);
-    free(ptr4);
+    show_all_chunks_info();
+    printf("\nFreeing 0x%lX to create defragmentation\n\n", ptr2);
+    free(ptr2);
+    show_all_chunks_info();
 }
 
 void print_line(void){

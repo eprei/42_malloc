@@ -55,10 +55,11 @@ void *malloc(size_t size);
 void *realloc(void *ptr, size_t size);
 void show_alloc_mem(void);
 
-// Utility functions for internal use
+// Utility function
 int get_zone_index(void *ptr);
 unsigned calculate_units_needed(size_t size);
 void print_error_for_object(void *ptr, char *function_name);
 Header* get_header(void* ptr);
+void show_all_chunks_info(void);
 
 #endif
